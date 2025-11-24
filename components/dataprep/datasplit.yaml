@@ -1,0 +1,57 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+name: data_split_project
+type: command
+version: 0.1.1
+display_name: Data Split - Train/Val/Test (Emotions)
+description: Splits input emotion datasets into train, validation, and test sets based on a given split fraction.
+is_deterministic: true
+resources:
+  instance_count: 1
+environment: azureml:aml-preprocessing-project:0.1.0
+code: ./code
+command: >
+  python traintestsplit.py
+  --datasets ${{inputs.emotion_1}} ${{inputs.emotion_2}} ${{inputs.emotion_3}} ${{inputs.emotion_4}} ${{inputs.emotion_5}}
+  --train_output ${{outputs.train_output}}
+  --val_output ${{outputs.val_output}}
+  --test_output ${{outputs.test_output}}
+  $[[--test_size ${{inputs.test_size}}]]
+  $[[--val_size ${{inputs.val_size}}]]
+
+inputs:
+  emotion_1:
+    type: uri_folder
+    optional: false
+  emotion_2:
+    type: uri_folder
+    optional: false
+  emotion_3:
+    type: uri_folder
+    optional: false
+  emotion_4:
+    type: uri_folder
+    optional: false
+  emotion_5:
+    type: uri_folder
+    optional: false
+  test_size:
+    type: number
+    optional: true
+    default: 0.2
+    description: "Fraction of data to reserve for val+test (default: 0.2)"
+  val_size:
+    type: number
+    optional: true
+    default: 0.5
+    description: "Fraction of val+test to use for val (default: 0.5)"
+
+outputs:
+  train_output:
+    type: uri_folder
+    description: Output folder containing training images
+  val_output:
+    type: uri_folder
+    description: Output folder containing validation images
+  test_output:
+    type: uri_folder
+    description: Output folder containing test images

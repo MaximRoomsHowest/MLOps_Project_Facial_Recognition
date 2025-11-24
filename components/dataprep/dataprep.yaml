@@ -1,0 +1,24 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+name: data_prep_image_resize_project
+type: command
+version: 0.1.0
+display_name: Data Preparation - Image Resize
+description: Resizes images and prepares them for training, using a fixed random seed for reproducibility.
+is_deterministic: true
+resources:
+  instance_count: 1
+environment: azureml:aml-preprocessing-project:0.1.0
+code: ./code
+command: >
+  python dataprep.py
+  --data ${{inputs.data}}
+  --output_data ${{outputs.output_data}}
+
+inputs:
+  data:
+    type: uri_folder
+    optional: false
+
+outputs:
+  output_data:
+    type: uri_folder

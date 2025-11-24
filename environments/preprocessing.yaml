@@ -1,0 +1,14 @@
+$schema: https://azuremlschemas.azureedge.net/latest/environment.schema.json
+name: aml-preprocessing-project
+version: 0.1.0
+description: Custom environment for image preprocessing.
+
+image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu22.04:latest
+os_type: linux
+
+# The conda file should point to your dependencies
+conda_file: ../components/dataprep/conda.yaml
+
+tags:
+  purpose: image_preprocessing
+  Pillow: 11.2.1
