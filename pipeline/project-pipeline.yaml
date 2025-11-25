@@ -1,0 +1,115 @@
+$schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
+
+name: emotion_classification_pipeline_project_0-1-7
+display_name: Emotion Classification
+experiment_name: classification
+type: pipeline
+
+outputs:
+  model:
+    mode: upload
+  registration_details:
+    mode: upload
+
+settings:
+  default_compute: azureml:manual-compute
+
+jobs:
+  # 1️ Data Prep for anger
+  data_prep_angry:
+    type: command
+    component: ../components/dataprep/dataprep.yaml
+    inputs:
+      data:
+        type: uri_folder
+        path: azureml:Angry:1
+    outputs:
+      output_data:
+        mode: rw_mount
+
+  # 2 Data Prep for fear
+  data_prep_fear:
+    type: command
+    component: ../components/dataprep/dataprep.yaml
+    inputs:
+      data:
+        type: uri_folder
+        path: azureml:Fear:1
+    outputs:
+      output_data:
+        mode: rw_mount
+
+  # 3 Data Prep for happy
+  data_prep_happy:
+    type: command
+    component: ../components/dataprep/dataprep.yaml
+    inputs:
+      data:
+        type: uri_folder
+        path: azureml:Happy:1
+    outputs:
+      output_data:
+        mode: rw_mount
+
+  # 4 Data Prep for sad
+  data_prep_sad:
+    type: command
+    component: ../components/dataprep/dataprep.yaml
+    inputs:
+      data:
+        type: uri_folder
+        path: azureml:Sad:1
+    outputs:
+      output_data:
+        mode: rw_mount
+
+  # 5 Data Prep for surprise
+  data_prep_surprise:
+    type: command
+    component: ../components/dataprep/dataprep.yaml
+    inputs:
+      data:
+        type: uri_folder
+        path: azureml:Surprise:1
+    outputs:
+      output_data:
+        mode: rw_mount
+
+  # 6 Data Split Step
+  data_split_step:
+    type: command
+    component: ../components/dataprep/datasplit.yaml
+    inputs:
+      emotion_1: ${{parent.jobs.data_prep_angry.outputs.output_data}}
+      emotion_2: ${{parent.jobs.data_prep_fear.outputs.output_data}}
+      emotion_3: ${{parent.jobs.data_prep_happy.outputs.output_data}}
+      emotion_4: ${{parent.jobs.data_prep_sad.outputs.output_data}}
+      emotion_5: ${{parent.jobs.data_prep_surprise.outputs.output_data}}
+    outputs:
+      train_output:
+        mode: rw_mount
+      val_output:
+        mode: rw_mount
+      test_output:
+        mode: rw_mount
+
+
+  # 7 Training Step
+  training:
+    type: command
+    component: ../components/training/training.yaml
+    inputs:
+      training_folder: ${{parent.jobs.data_split_step.outputs.train_output}}
+      validation_folder: ${{parent.jobs.data_split_step.outputs.val_output}}
+      testing_folder: ${{parent.jobs.data_split_step.outputs.test_output}}
+
+  # 8 Register Model Step
+  register:
+    type: command
+    component: azureml://registries/azureml/components/register_model/versions/0.0.9
+    inputs:
+      model_name: emotion-classification-model
+      model_type: custom_model
+      model_path: ${{parent.jobs.training.outputs.output_model}}
+    outputs:
+      registration_details_folder: ${{parent.outputs.registration_details}}
