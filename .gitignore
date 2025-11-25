@@ -2,3 +2,6 @@
 *.jpg
 EmotionsArchive/
 Data/
+__pycache__/
+*.pyc
+.env
