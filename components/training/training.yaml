@@ -1,5 +1,5 @@
 $schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
-version: 0.2.3
+version: 0.2.4
 type: command
 name: training_project
 display_name: Training an AI model
@@ -18,14 +18,13 @@ command: >
   --lr ${{inputs.lr}}
   --step ${{inputs.step}}
   --gamma ${{inputs.gamma}}
-  --img_size ${{inputs.img_size}}
   --model_name ${{inputs.model_name}}
 
 inputs:
   epochs:
     optional: false
     type: integer
-    default: 10
+    default: 1
   training_folder:
     optional: false
     type: uri_folder
@@ -38,7 +37,7 @@ inputs:
   batch_size:
     optional: false
     type: integer
-    default: 16
+    default: 8
   lr:
     optional: false
     type: number
@@ -51,10 +50,6 @@ inputs:
     optional: false
     type: number
     default: 0.1
-  img_size:
-    optional: false
-    type: integer
-    default: 224
   model_name:
     optional: false
     type: string

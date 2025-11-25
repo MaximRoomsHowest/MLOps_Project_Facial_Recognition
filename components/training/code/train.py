@@ -8,7 +8,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
-from torchvision.models import resnet50, ResNet50_Weights
+from torchvision.models import resnet18, ResNet18_Weights
 from torchvision import transforms
 from sklearn.metrics import classification_report, confusion_matrix
 
@@ -78,12 +78,11 @@ def main():
     parser.add_argument('--train_folder', type=str, required=True)
     parser.add_argument('--val_folder', type=str, required=True)
     parser.add_argument('--test_folder', type=str, required=True)
-    parser.add_argument('--epochs', type=int, default=10)
-    parser.add_argument('--batch_size', type=int, default=16)
+    parser.add_argument('--epochs', type=int, default=1)
+    parser.add_argument('--batch_size', type=int, default=8)
     parser.add_argument('--lr', type=float, default=0.1)
     parser.add_argument('--step', type=int, default=10)
     parser.add_argument('--gamma', type=float, default=0.1)
-    parser.add_argument('--img_size', type=int, default=224)
     parser.add_argument('--output_folder', type=str, required=True)
     parser.add_argument('--model_name', type=str, default="facial_expression_model")
     args = parser.parse_args()
@@ -99,7 +98,6 @@ def main():
     print("Test folder content:", os.listdir(args.test_folder) if os.path.exists(args.test_folder) else "MISSING", flush=True)
 
     transform = transforms.Compose([
-        transforms.Resize((args.img_size, args.img_size)),  # Resize before ToTensor
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
@@ -119,7 +117,7 @@ def main():
     num_classes = len(train_ds.labels_map)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    base_model = resnet50(weights=ResNet50_Weights.IMAGENET1K_V2)
+    base_model = resnet18(weights=ResNet18_Weights.IMAGENET1K_V2)
     model = ResNet(base_model, num_classes).to(device)
     print(f"print: using device: {device}", flush=True)
 
