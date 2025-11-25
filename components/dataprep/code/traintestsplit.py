@@ -22,12 +22,15 @@ def split_combined_dataset(emotion_dirs, train_output, val_output, test_output, 
 
     # Gather all images from all emotion folders
     all_images = []
+    image_extensions = ["*.jpg", "*.jpeg", "*.png", "*.bmp"]
+
     for folder in emotion_dirs:
-        imgs = glob(os.path.join(folder, "*.jpg"))
-        all_images.extend(imgs)
+        for ext in image_extensions:
+            all_images.extend(glob(os.path.join(folder, ext)))
 
     print(f"Total images found: {len(all_images)}")
     random.shuffle(all_images)
+
 
     # Compute split sizes
     n_total = len(all_images)

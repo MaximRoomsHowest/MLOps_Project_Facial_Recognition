@@ -1,0 +1,60 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+version: 0.1.6
+type: command
+name: training_project
+display_name: Training an AI model
+description: Trains an AI model using training, validation, and testing datasets.
+
+code: ./code
+environment: azureml:aml-training-project:0.1.3
+command: >
+  python train.py
+  --train_folder ${{inputs.training_folder}}
+  --val_folder ${{inputs.validation_folder}}
+  --test_folder ${{inputs.testing_folder}}
+  --output_folder ${{outputs.output_model}}
+  --epochs ${{inputs.epochs}}
+  --batch_size ${{inputs.batch_size}}
+  --lr ${{inputs.lr}}
+  --step ${{inputs.step}}
+  --gamma ${{inputs.gamma}}
+  --img_size ${{inputs.img_size}}
+
+inputs:
+  epochs:
+    optional: false
+    type: integer
+    default: 10
+  training_folder:
+    optional: false
+    type: uri_folder
+  validation_folder:
+    optional: false
+    type: uri_folder
+  testing_folder:
+    optional: false
+    type: uri_folder
+  batch_size:
+    optional: false
+    type: integer
+    default: 16
+  lr:
+    optional: false
+    type: number
+    default: 0.1
+  step:
+    optional: false
+    type: integer
+    default: 10
+  gamma:
+    optional: false
+    type: number
+    default: 0.1
+  img_size:
+    optional: false
+    type: integer
+    default: 224
+
+outputs:
+  output_model:
+    type: uri_folder
