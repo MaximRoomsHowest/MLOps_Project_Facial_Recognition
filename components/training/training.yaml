@@ -1,5 +1,5 @@
 $schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
-version: 0.2.4
+version: 0.2.6
 type: command
 name: training_project
 display_name: Training an AI model
@@ -24,7 +24,7 @@ inputs:
   epochs:
     optional: false
     type: integer
-    default: 1
+    default: 5
   training_folder:
     optional: false
     type: uri_folder

@@ -78,7 +78,7 @@ def main():
     parser.add_argument('--train_folder', type=str, required=True)
     parser.add_argument('--val_folder', type=str, required=True)
     parser.add_argument('--test_folder', type=str, required=True)
-    parser.add_argument('--epochs', type=int, default=1)
+    parser.add_argument('--epochs', type=int, default=5)
     parser.add_argument('--batch_size', type=int, default=8)
     parser.add_argument('--lr', type=float, default=0.1)
     parser.add_argument('--step', type=int, default=10)
@@ -117,7 +117,7 @@ def main():
     num_classes = len(train_ds.labels_map)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    base_model = resnet18(weights=ResNet18_Weights.IMAGENET1K_V2)
+    base_model = resnet18(weights=ResNet18_Weights.IMAGENET1K_V1)
     model = ResNet(base_model, num_classes).to(device)
     print(f"print: using device: {device}", flush=True)
 
