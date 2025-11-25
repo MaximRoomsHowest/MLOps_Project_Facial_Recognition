@@ -1,5 +1,5 @@
 $schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
-version: 0.1.6
+version: 0.2.3
 type: command
 name: training_project
 display_name: Training an AI model
@@ -19,6 +19,7 @@ command: >
   --step ${{inputs.step}}
   --gamma ${{inputs.gamma}}
   --img_size ${{inputs.img_size}}
+  --model_name ${{inputs.model_name}}
 
 inputs:
   epochs:
@@ -54,6 +55,10 @@ inputs:
     optional: false
     type: integer
     default: 224
+  model_name:
+    optional: false
+    type: string
+    default: facial_expression_model
 
 outputs:
   output_model:
