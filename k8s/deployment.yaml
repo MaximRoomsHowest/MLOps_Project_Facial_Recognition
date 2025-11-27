@@ -33,4 +33,4 @@ spec:
     - protocol: TCP
       port: 7861
       targetPort: 7861
-  type: ClusterIP
+  type: LoadBalancer

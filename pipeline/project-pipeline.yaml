@@ -22,7 +22,7 @@ jobs:
     inputs:
       data:
         type: uri_folder
-        path: azureml:Angry:1
+        path: azureml:Angry@latest
     outputs:
       output_data:
         mode: rw_mount
@@ -34,7 +34,7 @@ jobs:
     inputs:
       data:
         type: uri_folder
-        path: azureml:Fear:1
+        path: azureml:Fear@latest
     outputs:
       output_data:
         mode: rw_mount
@@ -46,7 +46,7 @@ jobs:
     inputs:
       data:
         type: uri_folder
-        path: azureml:Happy:1
+        path: azureml:Happy@latest
     outputs:
       output_data:
         mode: rw_mount
@@ -58,7 +58,7 @@ jobs:
     inputs:
       data:
         type: uri_folder
-        path: azureml:Sad:1
+        path: azureml:Sad@latest
     outputs:
       output_data:
         mode: rw_mount
@@ -70,7 +70,7 @@ jobs:
     inputs:
       data:
         type: uri_folder
-        path: azureml:Surprise:1
+        path: azureml:Surprise@latest
     outputs:
       output_data:
         mode: rw_mount

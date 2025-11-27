@@ -264,24 +264,46 @@ jobs:
     needs: 
       - deploy
       - hf-deploy
+      - deploy-frontend
     runs-on: self-hosted
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Start or create k3d cluster
+      - name: Start or create k3d cluster (with LoadBalancer check)
         shell: pwsh
         run: |
           $CLUSTER_NAME = "k3s-default"
+
+          # Check if cluster exists
           $clusterExists = k3d cluster list | Select-String $CLUSTER_NAME
 
           if ($clusterExists) {
-              Write-Output "Cluster $CLUSTER_NAME exists, starting it..."
-              k3d cluster start $CLUSTER_NAME
+              Write-Output "Cluster $CLUSTER_NAME exists."
+
+              # Check if loadbalancer node exists
+              $lbNodeExists = k3d node list | Select-String "$CLUSTER_NAME-serverlb"
+
+              if (-not $lbNodeExists) {
+                  Write-Warning "Cluster exists but DOES NOT have a loadbalancer node. Recreating..."
+                  k3d cluster delete $CLUSTER_NAME
+
+                  k3d cluster create $CLUSTER_NAME --agents 3 `
+                    -p "30000-30020:30000-30020@server:0" `
+                    -p "7861:7861@loadbalancer"
+
+              } else {
+                  Write-Output "LoadBalancer node is present. Starting cluster..."
+                  k3d cluster start $CLUSTER_NAME
+              }
+
           } else {
-              Write-Output "Cluster $CLUSTER_NAME does not exist, creating it..."
-              k3d cluster create $CLUSTER_NAME --agents 3 -p "30000-30020:30000-30020@server:0"
+              Write-Output "Cluster $CLUSTER_NAME does not exist. Creating..."
+
+              k3d cluster create $CLUSTER_NAME --agents 3 `
+                -p "30000-30020:30000-30020@server:0" `
+                -p "7861:7861@loadbalancer"
           }
 
       - name: Generate kubeconfig
