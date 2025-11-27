@@ -1,5 +1,7 @@
 *.png
 *.jpg
+*.jpeg
+test_images/
 EmotionsArchive/
 Data/
 __pycache__/

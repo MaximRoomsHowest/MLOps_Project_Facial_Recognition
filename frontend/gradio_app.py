@@ -2,9 +2,12 @@ import gradio as gr
 import requests
 from PIL import Image
 import io
+import os
 
+# Backend URL from environment docker-compose
+BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:7860")
 # Your FastAPI endpoint
-FASTAPI_URL = "http://localhost:7860/upload/image"
+FASTAPI_URL = f"{BACKEND_URL}/upload/image"
 
 def classify_image(image: Image.Image):
     # Convert PIL Image to bytes
@@ -30,4 +33,4 @@ iface = gr.Interface(
     description="Upload an image of a face and get the predicted emotion."
 )
 
-iface.launch()
+iface.launch(server_name="0.0.0.0", server_port=7861)

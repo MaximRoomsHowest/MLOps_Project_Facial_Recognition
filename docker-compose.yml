@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./inference
+      dockerfile: Dockerfile
+    container_name: facial_emotion_backend
+    ports:
+      - "7860:7860"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: facial_emotion_frontend
+    ports:
+      - "7861:7861"
+    environment:
+      - BACKEND_URL=http://backend:7860
+    depends_on:
+      - backend
+    restart: unless-stopped
