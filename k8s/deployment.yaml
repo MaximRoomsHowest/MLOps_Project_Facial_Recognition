@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emotion-frontend-deployment
+  labels:
+    app: emotion-frontend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: emotion-frontend
+  template:
+    metadata:
+      labels:
+        app: emotion-frontend
+    spec:
+      containers:
+      - name: emotion-frontend-container
+        image: ghcr.io/maximroomshowest/mlops-emotion-frontend:latest
+        ports:
+        - containerPort: 7861
+      imagePullSecrets:
+      - name: ghcr-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: emotion-frontend-service
+spec:
+  selector:
+    app: emotion-frontend
+  ports:
+    - protocol: TCP
+      port: 7861
+      targetPort: 7861
+  type: ClusterIP

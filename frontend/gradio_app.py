@@ -5,7 +5,7 @@ import io
 import os
 
 # Backend URL from environment docker-compose
-BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:7860")
+BACKEND_URL = os.environ.get("BACKEND_URL", "https://MLOps_Project.hf.space")
 # Your FastAPI endpoint
 FASTAPI_URL = f"{BACKEND_URL}/upload/image"
 
