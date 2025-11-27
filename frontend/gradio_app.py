@@ -1,30 +1,24 @@
 import gradio as gr
-import requests
 from PIL import Image
 import io
-import os
+import requests
 
-# Backend URL from environment docker-compose
-BACKEND_URL = os.environ.get("BACKEND_URL", "https://MLOps_Project.hf.space")
-# Your FastAPI endpoint
+BACKEND_URL = "https://nookimax050-mlops-project.hf.space"
 FASTAPI_URL = f"{BACKEND_URL}/upload/image"
 
 def classify_image(image: Image.Image):
-    # Convert PIL Image to bytes
     buffered = io.BytesIO()
     image.save(buffered, format="PNG")
     buffered.seek(0)
-    
-    # Send image to FastAPI
+
     files = {"img": ("image.png", buffered, "image/png")}
     response = requests.post(FASTAPI_URL, files=files)
-    
+
     if response.status_code == 200:
         return response.json()["prediction"]
     else:
-        return f"Error: {response.status_code}"
+        return f"Error {response.status_code}: {response.text}"
 
-# Create Gradio interface
 iface = gr.Interface(
     fn=classify_image,
     inputs=gr.Image(type="pil"),
