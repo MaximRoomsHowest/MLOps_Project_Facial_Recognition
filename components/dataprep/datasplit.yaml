@@ -1,7 +1,7 @@
 $schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
 name: data_split_project
 type: command
-version: 0.1.5
+version: 0.1.6
 display_name: Data Split - Train/Val/Test (Emotions)
 description: Splits input emotion datasets into train, validation, and test sets based on a given split fraction.
 is_deterministic: true

@@ -50,8 +50,12 @@ jobs:
             idle_time_before_shutdown: PT30M
             idle_time_before_shutdown_minutes: 30
             EOF
-
-            az ml compute create --file ./environments/compute.yaml
+            if ! az ml compute show --name auto-created-machine; then
+              echo "Compute 'auto-created-machine' does not exist. Creating compute..."
+              az ml compute create --file ./environments/compute.yaml
+            else
+              echo "Compute 'auto-created-machine' already exists. Skipping creation."
+            fi
 
       - name: Azure -- Start Compute
         uses: Azure/CLI@v2.2.0
