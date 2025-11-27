@@ -26,7 +26,7 @@ jobs:
           azcliversion: 2.80.0
           inlineScript: |
             az extension add --name ml -y
-            az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
+            az configure --defaults group=$GROUP workspace=$WORKSPACE
 
             # Generate compute YAML with current UTC time in correct format
             CURRENT_TIME=$(date -u +"%Y-%m-%dT%H:%M:%S")
