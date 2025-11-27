@@ -1,1 +1,201 @@
+name: CI - CD - Project
 
+on:
+  workflow_dispatch:
+
+jobs:
+  azure-pipeline:
+    runs-on: ubuntu-24.04
+
+    env:
+      GROUP: azure-ai
+      WORKSPACE: rooms-maxim-ml
+      LOCATION: westeurope
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2.2.0
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Azure -- Create compute
+        uses: Azure/CLI@v2.2.0
+        with:
+          azcliversion: 2.80.0
+          inlineScript: |
+            az extension add --name ml -y
+            az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
+
+            # Generate compute YAML with current UTC time in correct format
+            CURRENT_TIME=$(date -u +"%Y-%m-%dT%H:%M:%S")
+
+            cat > ./environments/compute.yaml <<EOF
+            \$schema: "https://azuremlschemas.azureedge.net/latest/computeInstance.schema.json"
+            name: auto-created-machine
+            type: computeinstance
+            size: Standard_D2as_v4
+
+            schedules:
+              compute_start_stop:
+                - action: stop
+                  state: enabled
+                  trigger:
+                    expression: "00 18 * * 1,2,3,4,5"
+                    time_zone: "UTC"
+                    start_time: "$CURRENT_TIME"
+                    type: cron
+
+            idle_time_before_shutdown: PT30M
+            idle_time_before_shutdown_minutes: 30
+            EOF
+
+            az ml compute create --file ./environments/compute.yaml
+
+      - name: Azure -- Start Compute
+        uses: Azure/CLI@v2.2.0
+        with:
+          azcliversion: 2.80.0
+          inlineScript: |
+            az extension add --name ml -y
+            az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
+
+            state=$(az ml compute show --name auto-created-machine --query "state" -o tsv)
+            echo "Current compute state: $state"
+
+            if [ "$state" = "Stopped" ]; then
+                echo "Compute is stopped. Starting compute..."
+                az ml compute start --name auto-created-machine
+            else
+                echo "Compute is not in 'Stopped' state, skipping start. Current state: $state"
+            fi
+
+      - name: Azure -- Environment Setup
+        uses: Azure/CLI@v2.2.0
+        with:
+          azcliversion: 2.80.0
+          inlineScript: |
+            az extension add --name ml -y
+            az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
+
+            for file in ./environments/preprocessing.yaml ./environments/training.yaml; do
+              echo "Creating environment from $file"
+              az ml environment create --file "$file"
+            done
+
+      - name: Azure -- Component Setup
+        uses: Azure/CLI@v2.2.0
+        with:
+          azcliversion: 2.80.0
+          inlineScript: |
+            az extension add --name ml -y
+            az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
+
+            for file in ./components/dataprep/dataprep.yaml \
+                        ./components/dataprep/datasplit.yaml \
+                        ./components/training/training.yaml; do
+              echo "Creating component from $file"
+              az ml component create --file "$file"
+            done
+
+      - name: Azure -- Submit ML Pipeline Job
+        uses: Azure/CLI@v2.2.0
+        with:
+          azcliversion: 2.80.0
+          inlineScript: |
+            az extension add --name ml -y
+            az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
+            az ml job create --file ./pipeline/project-pipeline.yaml \
+              --stream \
+              --set name=facial-emotion-recognition-${{ github.sha }}-${{ github.run_id }}
+
+      - name: Azure -- Stop Compute (Cleanup)
+        uses: Azure/CLI@v2.2.0
+        with:
+          azcliversion: 2.80.0
+          inlineScript: |
+            az extension add --name ml -y
+            az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
+
+            state=$(az ml compute show --name auto-created-machine --query "state" -o tsv)
+            echo "Current compute state: $state"
+
+            if [ "$state" = "Running" ]; then
+                echo "Compute is not in 'Stopped' state, stopping compute..."
+                az ml compute stop --name auto-created-machine
+            else
+                echo "Compute is not running."
+            fi
+    
+    download:
+      needs: azure-pipeline
+      runs-on: ubuntu-24.04
+
+      env:
+        GROUP: azure-ai
+        WORKSPACE: rooms-maxim-ml
+        LOCATION: westeurope
+
+      steps:
+        - name: Check out repository
+          uses: actions/checkout@v4
+        
+        - name: Azure Login
+          uses: azure/login@v2.2.0
+          with:
+            creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+        - name: Azure -- Download Model
+          uses: Azure/CLI@v2.2.0
+          with:
+            azcliversion: 2.80.0
+            inlineScript: |
+              az extension add --name ml -y
+              az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
+
+              VERSION=$(az ml model list --name facial-emotion-recognition --query "[0].version" -o tsv)
+              echo "Downloading model version $VERSION"
+
+              az ml model download --name facial-emotion-recognition --version "$VERSION" --download-path ./inference
+
+        - name: Docker -- Upload API code from Inference
+          uses: actions/upload-artifact@v4.3.3
+          with:
+            name: docker-config
+            path: inference
+
+  deploy:
+    needs: download
+    runs-on: self-hosted
+
+    outputs:
+      image_tag: ${{ steps.set-image.outputs.sha_tag }}
+
+    steps:
+      - name: Docker -- Login to GHCR
+        uses: docker/login-action@v3.2.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker -- Download API Code for Inference
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: docker-config
+          path: inference
+
+      - name: Set image tag
+        id: set-image
+        shell: pwsh
+        run: |
+          $shaTag = "ghcr.io/maximroomshowest/mlops-emotions-api:sha-$($env:GITHUB_SHA)"
+          Write-Output "sha_tag=$shaTag" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+
+      - name: Docker Build and push
+        uses: docker/build-push-action@v5.3.0
+        with:
+          context: ./inference
+          push: true
+          tags: ${{ steps.set-image.outputs.sha_tag }}

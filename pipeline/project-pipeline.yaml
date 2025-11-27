@@ -1,6 +1,6 @@
 $schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
 
-name: emotion_classification_pipeline_project_0-1-7
+name: emotion_classification_pipeline_project_0-1-8
 display_name: Emotion Classification
 experiment_name: classification
 type: pipeline
@@ -12,7 +12,7 @@ outputs:
     mode: upload
 
 settings:
-  default_compute: azureml:manual-compute
+  default_compute: azureml:auto-created-machine
 
 jobs:
   # 1️ Data Prep for anger
