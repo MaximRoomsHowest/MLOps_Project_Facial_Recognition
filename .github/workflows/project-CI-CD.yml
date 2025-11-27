@@ -128,42 +128,42 @@ jobs:
                 echo "Compute is not running."
             fi
     
-    download:
-      needs: azure-pipeline
-      runs-on: ubuntu-24.04
+  download:
+    needs: azure-pipeline
+    runs-on: ubuntu-24.04
 
-      env:
-        GROUP: azure-ai
-        WORKSPACE: rooms-maxim-ml
-        LOCATION: westeurope
+    env:
+      GROUP: azure-ai
+      WORKSPACE: rooms-maxim-ml
+      LOCATION: westeurope
 
-      steps:
-        - name: Check out repository
-          uses: actions/checkout@v4
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
         
-        - name: Azure Login
-          uses: azure/login@v2.2.0
-          with:
-            creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Azure Login
+        uses: azure/login@v2.2.0
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-        - name: Azure -- Download Model
-          uses: Azure/CLI@v2.2.0
-          with:
-            azcliversion: 2.80.0
-            inlineScript: |
-              az extension add --name ml -y
-              az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
+      - name: Azure -- Download Model
+        uses: Azure/CLI@v2.2.0
+        with:
+          azcliversion: 2.80.0
+          inlineScript: |
+            az extension add --name ml -y
+            az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
 
-              VERSION=$(az ml model list --name facial-emotion-recognition --query "[0].version" -o tsv)
-              echo "Downloading model version $VERSION"
+            VERSION=$(az ml model list --name facial-emotion-recognition --query "[0].version" -o tsv)
+            echo "Downloading model version $VERSION"
 
-              az ml model download --name facial-emotion-recognition --version "$VERSION" --download-path ./inference
+            az ml model download --name facial-emotion-recognition --version "$VERSION" --download-path ./inference
 
-        - name: Docker -- Upload API code from Inference
-          uses: actions/upload-artifact@v4.3.3
-          with:
-            name: docker-config
-            path: inference
+      - name: Docker -- Upload API code from Inference
+        uses: actions/upload-artifact@v4.3.3
+        with:
+          name: docker-config
+          path: inference
 
   deploy:
     needs: download
