@@ -93,7 +93,6 @@ jobs:
       test_output:
         mode: rw_mount
 
-
   # 7 Training Step
   training:
     type: command
@@ -102,6 +101,8 @@ jobs:
       training_folder: ${{parent.jobs.data_split_step.outputs.train_output}}
       validation_folder: ${{parent.jobs.data_split_step.outputs.val_output}}
       testing_folder: ${{parent.jobs.data_split_step.outputs.test_output}}
+    outputs:
+      output_model: ${{parent.outputs.model}}
 
   # 8 Register Model Step
   register:
